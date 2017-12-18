@@ -26,24 +26,42 @@ function ask (question, validate) {
   });
 }
 
-function initProcess (src, dest, remove) {
-  ensureDir(src).then(() => {
-    return ensureDir(dest, true);
-  }).then(() => {
-    return readDirRecursive(src);
-  }).then(itemList => {
-    console.log(itemList);
+async function initProcess (src, dest, remove) {
+  try {
+    await ensureDir(src);
+    await ensureDir(dest, true);
+    const itemList = await readDirRecursive(src);
     console.log('Reading source folder - DONE');
-    return sortFilesByExtension(itemList);
-  }).then(() => {
+    await sortFilesByExtension(itemList);
     if (remove) {
-      return removeFolder(src);
+      await removeFolder(src);
     } else {
       process.exit(0);
     }
-  }).catch(error => {
+  } catch (error) {
     console.error(error);
-  });
+  }
+}
+
+async function askProcess () {
+  try {
+    srcFolder = await ask('Write source folder', /.+/);
+    await ensureDir(srcFolder);
+    destFolder = await ask('Write destination folder', /.+/);
+    await ensureDir(destFolder, true);
+    isRemove = await ask('Remove source folder? [y/n]', /[y|n]/i);
+    isRemove = isRemove === 'y';
+    const itemList = await readDirRecursive(srcFolder);
+    console.log('Reading source folder - DONE');
+    await sortFilesByExtension(itemList);
+    if (isRemove) {
+      await removeFolder(srcFolder);
+    } else {
+      process.exit(0);
+    }
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 const ensureDir = (path, createDir) => {
@@ -77,7 +95,6 @@ const readDirRecursive = startDir => {
     function getItemList(readDir) {
       return new Promise((resolve, reject) => {
         fs.readdir(readDir).then(itemList => {
-          // resolve with parent path added to each item
           resolve(itemList.map(item => path.resolve(readDir, item)));
         });
       });
@@ -87,39 +104,31 @@ const readDirRecursive = startDir => {
       function getStat(itemPath) {
         return new Promise((resolve, reject) => {
           fs.stat(itemPath).then(stat => {
-            // resolve with item path and if directory
             resolve({itemPath, isDirectory: stat.isDirectory()});
           });
         });
       }
-      // stat all items in list
       return Promise.all(itemList.map(getStat));
     }
 
     function processItemList(itemList) {
       for (let {itemPath, isDirectory} of itemList) {
-        // if directory add to queue
         if (isDirectory) {
           readDirQueue.push(itemPath);
           continue;
         }
-        // add file to list
         fileList.push(itemPath);
       }
-      // if queue, process next item recursive
       if (readDirQueue.length > 0) {
         return readDir(readDirQueue.shift());
       }
-      // finished - return file list
       return fileList;
     }
-    // read item list from directory, stat each item then walk result
     return getItemList(dir)
       .then(getItemListStat)
       .then(processItemList);
   }
 
-  // commence reading at the top
   return readDir(startDir);
 };
 
@@ -143,7 +152,7 @@ const sortFilesByExtension = (filesArr) => {
     });
 
     return Promise.all(copyFileQueue).then(() => {
-      console.log(`Sorting files by extension - DONE.\nSorted files in folder: ${destFolder}`);
+      console.log(`Sorting files by extension - DONE\nSorted files in folder: ${destFolder}`);
       resolve();
     });
   });
@@ -160,21 +169,7 @@ const removeFolder = status => {
 };
 
 if (!srcFolder && !destFolder) {
-  ask('Write source folder', /.+/).then(src => {
-    srcFolder = src;
-  }).then(() => {
-    return ask('Write destination folder', /.+/);
-  }).then(dest => {
-    destFolder = dest;
-  }).then(() => {
-    return ask('Remove source folder? [y/n]', /[y|n]/i);
-  }).then(remove => {
-    isRemove = remove.toLowerCase() === 'y';
-  }).then(() => {
-    initProcess(srcFolder, destFolder, isRemove);
-  }).catch(error => {
-    console.error(error);
-  });
+  askProcess();
 } else {
   initProcess(srcFolder, destFolder, isRemove);
 }
