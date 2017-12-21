@@ -6,12 +6,15 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
 const index = require('./routes/index');
+const myWork = require('./routes/my-work');
+const contactMe = require('./routes/contact-me');
 const users = require('./routes/users');
+const login = require('./routes/login');
 
 const app = express();
 
 // view engine setup
-app.set('views', path.join(__dirname, 'app/templates/pages'));
+app.set('views', path.join(__dirname, 'app/templates/'));
 app.set('view engine', 'pug');
 
 app.use(favicon(path.join(__dirname, 'app/favicon.ico')));
@@ -23,6 +26,9 @@ app.use(express.static(path.join(__dirname, 'app')));
 
 app.use('/', index);
 app.use('/users', users);
+app.use('/my-work', myWork);
+app.use('/contact-me', contactMe);
+app.use('/login', login);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -39,7 +45,7 @@ app.use((err, req, res, next) => {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.render('pages/error');
 });
 
 module.exports = app;
