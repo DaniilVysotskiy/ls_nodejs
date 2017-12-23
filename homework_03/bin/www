@@ -33,13 +33,18 @@ server.listen(port, () => {
   
   db.setState(newState);
   // Set some defaults in DB
-  db.defaults({ users: [] })
+  db.defaults({ works: [], users: [] })
     .write();
 
   db.get('users')
     .push(
-      { id: 1, login: 'admin', password: 'admin'},
-      { id: 2, login: 'test', password: 'test'}
+      { login: 'admin', password: 'admin'},
+      { login: 'test', password: 'test'}
+    )
+    .write();
+  db.get('works')
+    .push(
+      { name: 'test', img: 'img/work/loftschool.png', link: 'test.com', desc: 'Test project taken from DB' }
     )
     .write();
 });
