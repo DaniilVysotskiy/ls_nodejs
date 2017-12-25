@@ -1,28 +1,27 @@
-const express = require('express');
-const router = express.Router();
+const router = require('koa-router')();
 const db = require('../models/db');
 
 /* GET login page. */
-router.get('/', (req, res, next) => {
-  res.render('pages/login', { title: 'Авторизация' });
+router.get('/login', async ctx => {
+  ctx.body = ctx.render('pages/login');
 });
 
-router.post('/', (req, res, next) => {
-  const login = req.body.login;
-  const password = req.body.password;
+router.post('/login', async ctx => {
+  const login = ctx.request.body.login;
+  const password = ctx.request.body.password;
   
   const dbUser = db.get('users').find({ login: login, password: password }).value();
 
   if(!dbUser) {
-    const err = new Error();
-    err.status = 'Error';
-    err.mes = 'Логин и/или пароль введены неверно!';
-    res.send(err);
+    const error = new Error();
+    error.status = 'Error';
+    error.mes = 'Логин и/или пароль введены неверно!';
+    ctx.response.body = error;
   } else {
     const response = {};
     response.status = 'OK';
     response.mes = 'Aвторизация успешна!';
-    res.send(response);
+    ctx.response.body = response;
   }
 
 });
