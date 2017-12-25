@@ -1,73 +1,67 @@
-const express = require('express');
-const router = express.Router();
-const formidable = require('formidable');
+const router = require('koa-router')();
 const fs = require('fs');
 const path = require('path');
 const db = require('../models/db');
 
 /* GET work page. */
-router.get('/', (req, res, next) => {
+router.get('/my-work', ctx => {
   const works = db.get('works').value();
 
-  res.render('pages/my-work', {
-    isAuthorized: req.session.isAuthorized,
+  ctx.body = ctx.render('pages/my-work', {
+    isAuthorized: ctx.session.isAuthorized,
     works: works
   });
 });
 
-router.post('/', (req, res, next) => {
-  const form = new formidable.IncomingForm();
+router.post('/my-work', ctx => {
+  const data = ctx.request.body;
   const upload = 'app/upload';
-  let fileName;
+  let fileName, imgLink;
 
-  form.uploadDir = path.resolve(__dirname, '../', upload);
+  uploadDir = path.resolve(__dirname, '../', upload);
 
-  if (!fs.existsSync(form.uploadDir)) {
-    fs.mkdirSync(form.uploadDir);
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
   }
 
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return next(err);
+  const { projectName, projectUrl, text } = data.fields;
+  const files = data.files;
+
+  if (projectName === void 0 || projectUrl === void 0 || text === void 0) {
+    const error = new Error();
+    error.mes = 'Все поля обязательны для заполнения';
+    error.status = 'Error';
+    ctx.response.body = error;
+  }
+
+  if (files.file.name === '' || files.file.size === 0) {
+    const error = new Error();
+    error.mes = 'Не загружена картинка проекта';
+    error.status = 'Error';
+    ctx.response.body = error;
+  }
+
+  fileName = path.join(uploadDir, files.file.name);
+
+  fs.rename(files.file.path, fileName, error => {
+    if (error) {
+      console.error(error);
+      fs.unlink(fileName);
+      fs.rename(files.file.path, fileName);
     }
 
-    const { projectName, projectUrl, text } = fields;
+    imgLink = path.join('upload', files.file.name);
 
-    if (projectName === void 0 || projectUrl === void 0 || text === void 0) {
-      const error = new Error();
-      error.mes = 'Все поля обязательны для заполнения';
-      error.status = 'Error';
-      res.send(error);
-    }
-
-    if (files.file.name === '' || files.file.size === 0) {
-      const error = new Error();
-      error.mes = 'Не загружена картинка проекта';
-      error.status = 'Error';
-      return res.send(error);
-    }
-
-    fileName = path.join(form.uploadDir, files.file.name);
-
-    fs.rename(files.file.path, fileName, error => {
-      if (error) {
-        console.error(error);
-        fs.unlink(fileName);
-        fs.rename(files.file.path, fileName);
-      }
-
-      let imgLink = path.join('img/work', files.file.name);
-
-      db.get('works')
-        .push({ name: projectName, link: projectUrl, img: imgLink, desc: text })
-        .write();
-
-      const response = {};
-      response.mes = 'Проект успешно загружен';
-      response.status = 'OK';
-      res.send(response);
-    });
+    db.get('works')
+      .push({ name: projectName, link: projectUrl, img: imgLink, desc: text })
+      .write();
+      
+    const response = {};
+    response.mes = 'Проект успешно загружен';
+    response.status = 'OK';
+    ctx.response.body = response;
   });
 });
+
 
 module.exports = router;
