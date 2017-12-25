@@ -8,7 +8,7 @@ const Pug = require('koa-pug');
 
 const index = require('./routes/index');
 const myWork = require('./routes/my-work');
-// const contactMe = require('./routes/contact-me');
+const contactMe = require('./routes/contact-me');
 const login = require('./routes/login');
 
 // view engine setup
@@ -36,13 +36,11 @@ app.use(session(app));
 // Routes
 app.use(index.routes());
 app.use(myWork.routes());
+app.use(contactMe.routes());
 app.use(login.routes());
+
 app.use(router.routes());
 
-// app.use('/', index);
-// app.use('/my-work', myWork);
-// app.use('/contact-me', contactMe);
-// app.use('/login', login);
 
 // // catch 404 and forward to error handler
 // app.use((req, res, next) => {

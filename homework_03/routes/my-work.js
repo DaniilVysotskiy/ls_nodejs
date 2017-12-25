@@ -4,7 +4,7 @@ const path = require('path');
 const db = require('../models/db');
 
 /* GET work page. */
-router.get('/my-work', ctx => {
+router.get('/my-work', async ctx => {
   const works = db.get('works').value();
 
   ctx.body = ctx.render('pages/my-work', {
@@ -13,7 +13,7 @@ router.get('/my-work', ctx => {
   });
 });
 
-router.post('/my-work', ctx => {
+router.post('/my-work', async ctx => {
   const data = ctx.request.body;
   const upload = 'app/upload';
   let fileName, imgLink;
