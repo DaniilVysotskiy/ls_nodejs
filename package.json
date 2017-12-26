@@ -14,7 +14,8 @@
     "koa-body": "^2.5.0",
     "koa-router": "^7.3.0",
     "koa-session": "^5.5.1",
-    "koa-static": "^4.0.2"
+    "koa-static": "^4.0.2",
+    "mongoose": "^4.13.7"
   },
   "devDependencies": {},
   "scripts": {
