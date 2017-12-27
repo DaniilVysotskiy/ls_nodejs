@@ -1,28 +1,36 @@
 const Koa = require('koa');
+const body = require('koa-body');
 const compose = require('koa-compose');
-const static = require('koa-static');
-const Router = require('koa-router');
-const session = require('koa-session');
-const logger = require('koa-logger');
 const favicon = require('koa-favicon');
+const logger = require('koa-logger');
+const Router = require('koa-router');
+const serve = require('koa-static');
+const session = require('koa-session');
 const path = require('path');
 
-const projectRoot = __dirname;
-const staticRoot = path.join(projectRoot, '../public');
+const projectRoot = path.join(__dirname, '..');
+const staticRoot = path.join(projectRoot, '/public');
 
-// Engine setup
+// Engine
 const app = new Koa();
 const router = new Router();
-app.use(router.routes());
+
+// DB
+const db = require(projectRoot + '/models/db');
 
 let middlewareStack = [
-  session({}, app), // расширяет контекст свойством session
-  logger(), // логирует все http запросы
-  favicon(staticRoot + '/favicon.png'), // фавиконка
-  static(staticRoot) // отдает статику
+  body(),
+  favicon(staticRoot + '/favicon.png'),
+  logger(),
+  session({}, app),
+  serve(staticRoot)
 ];
 
 app.use(compose(middlewareStack));
+
+// Routes
+app.use(require(projectRoot + '/routes/api/save-new-user').routes());
+app.use(router.routes());
 
 app.listen(3000, () => {
   console.log('Server running on https://localhost:3000');
