@@ -34,3 +34,4 @@ process.on('SIGINT', () => {
 });
 
 require('./users');
+require('./permissions');

@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
-const userSchema = new mongoose.Schema({
+const userSchema = new Schema({
+  _id: Schema.Types.ObjectId,
   access_token: String,
   username: {
     type: String,
@@ -14,8 +16,9 @@ const userSchema = new mongoose.Schema({
   surName: String,
   firstName: String,
   middleName: String,
-  permissionId: Number,
   image: String,
+  permission: Object,
+  permissionId: { type: Schema.Types.ObjectId, ref: 'Permissions' },
   createdAt: Date,
   updatedAt: Date
 });
