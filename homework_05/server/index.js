@@ -30,6 +30,7 @@ app.use(compose(middlewareStack));
 
 // Routes
 app.use(require(projectRoot + '/routes/api/save-new-user').routes());
+app.use(require(projectRoot + '/routes/api/login').routes());
 app.use(router.routes());
 
 app.listen(3000, () => {
