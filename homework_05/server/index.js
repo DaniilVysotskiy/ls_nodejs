@@ -4,7 +4,6 @@ const cookie = require('koa-cookie');
 const compose = require('koa-compose');
 const favicon = require('koa-favicon');
 const logger = require('koa-logger');
-const Router = require('koa-router');
 const serve = require('koa-static');
 const session = require('koa-session');
 const path = require('path');
@@ -14,7 +13,6 @@ const staticRoot = path.join(projectRoot, '/public');
 
 // Engine
 const app = new Koa();
-const router = new Router();
 
 // DB
 require(projectRoot + '/models/db');
@@ -32,9 +30,10 @@ let middlewareStack = [
 app.use(compose(middlewareStack));
 
 // Routes
+app.use(require(projectRoot + '/routes/index').routes());
 app.use(require(projectRoot + '/routes/api/save-new-user').routes());
 app.use(require(projectRoot + '/routes/api/login').routes());
-app.use(router.routes());
+app.use(require(projectRoot + '/routes/api/auth-from-token').routes());
 
 app.listen(3000, () => {
   console.log('Server running on https://localhost:3000');
