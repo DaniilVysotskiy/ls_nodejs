@@ -1,14 +1,17 @@
 const router = require('koa-router')();
 const mongoose = require('mongoose');
+const uuidv4 = require('uuid/v4');
 
 router.post('/api/login', async ctx => {
   try {
     const data = JSON.parse(ctx.request.body);
     const User = mongoose.model('Users');
+    const newToken = uuidv4();
 
-    const user = await User.findOne(data);
+    let user = await User.findOneAndUpdate(data, {$set: {access_token: newToken}}, {new: true});
 
     if (user) {
+      ctx.cookies.set('access_token', newToken);
       ctx.status = 200;
       ctx.response.body = user;
     } else {

@@ -1,5 +1,6 @@
 const Koa = require('koa');
 const body = require('koa-body');
+const cookie = require('koa-cookie');
 const compose = require('koa-compose');
 const favicon = require('koa-favicon');
 const logger = require('koa-logger');
@@ -16,9 +17,11 @@ const app = new Koa();
 const router = new Router();
 
 // DB
-const db = require(projectRoot + '/models/db');
+require(projectRoot + '/models/db');
 
+// Middleware
 let middlewareStack = [
+  cookie.default(),
   body(),
   favicon(staticRoot + '/favicon.png'),
   logger(),
